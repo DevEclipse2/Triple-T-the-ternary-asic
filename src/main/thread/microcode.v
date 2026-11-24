@@ -1,10 +1,11 @@
+`default_nettype none
 module microcode(
     input  wire        clk,
     input  wire        rst_n,
 
     input  wire [7:0]  macro_op_t0,
-    input  wire [6:0]  microcode_action_offset_t0,
-    input  wire [6:0]  microcode_param_offset_t0,
+    input  wire [7:0]  microcode_action_offset_t0,
+    input  wire [7:0]  microcode_param_offset_t0,
     input  wire        next_microop_t0,
     input  wire        flush_t0,
     output reg         data_ready_t0,
@@ -12,13 +13,10 @@ module microcode(
     output reg  [3:0]  param0_t0,
     output reg  [3:0]  param1_t0,
     output reg  [3:0]  param2_t0,
-    output reg  [6:0]  microcode_action_offset_t0_res,
-    output reg  [6:0]  microcode_param_offset_t0_res,
-
 
     input  wire [7:0]  macro_op_t1,
-    input  wire [6:0]  microcode_action_offset_t1,
-    input  wire [6:0]  microcode_param_offset_t1,
+    input  wire [7:0]  microcode_action_offset_t1,
+    input  wire [7:0]  microcode_param_offset_t1,
     input  wire        next_microop_t1,
     input  wire        flush_t1,
     output reg         data_ready_t1,
@@ -26,13 +24,11 @@ module microcode(
     output reg  [3:0]  param0_t1,
     output reg  [3:0]  param1_t1,
     output reg  [3:0]  param2_t1,
-    output reg  [6:0]  microcode_action_offset_t1_res,
-    output reg  [6:0]  microcode_param_offset_t1_res,
 
 
     input  wire [7:0]  macro_op_t2,
-    input  wire [6:0]  microcode_action_offset_t2,
-    input  wire [6:0]  microcode_param_offset_t2,
+    input  wire [7:0]  microcode_action_offset_t2,
+    input  wire [7:0]  microcode_param_offset_t2,
     input  wire        next_microop_t2,
     input  wire        flush_t2,
     output reg         data_ready_t2,
@@ -40,17 +36,22 @@ module microcode(
     output reg  [3:0]  param0_t2,
     output reg  [3:0]  param1_t2,
     output reg  [3:0]  param2_t2,
-    output reg  [6:0]  microcode_action_offset_t2_res,
-    output reg  [6:0]  microcode_param_offset_t2_res,
 
 
     input  wire [7:0]  bus, //la controller uses this
     output reg  [11:0] address,
     output wire         cycle_threads,
-    output wire        microcode_idle,
-
+    output wire         microcode_idle
 );
 
+    reg  [6:0]  microcode_action_offset_t0_res;
+    reg  [6:0]  microcode_param_offset_t0_res;
+    
+    reg  [6:0]  microcode_action_offset_t1_res;
+    reg  [6:0]  microcode_param_offset_t1_res;
+    
+    reg  [6:0]  microcode_action_offset_t2_res;
+    reg  [6:0]  microcode_param_offset_t2_res;
     // 1. Sector Base Address Calculation
     //    0  to 31  (32 ops): 2-byte chunks -> Base = op * 2
     //    32 to 111 (80 ops): 4-byte chunks -> Base = 64  + (op - 32) * 4
@@ -160,15 +161,15 @@ module microcode(
                               (winning_thread == 2'd1) ? microcode_param_offset_t1_res :
                                                          microcode_param_offset_t2_res;
 
-
-    wire [6:0] next_act_off = flush_vec[winning_thread] ?
-                              ((winning_thread == 2'd0) ? microcode_action_offset_t0 :
-                               (winning_thread == 2'd1) ? microcode_action_offset_t1 :
-                                                          microcode_action_offset_t2) : sel_act_off;
-    wire [6:0] next_prm_off = flush_vec[winning_thread] ?
-                              ((winning_thread == 2'd0) ? microcode_param_offset_t0 :
-                               (winning_thread == 2'd1) ? microcode_param_offset_t1 :
-                                                          microcode_param_offset_t2) : sel_prm_off;
+//switched to optimise
+    // wire [6:0] next_act_off = flush_vec[winning_thread] ?
+    //                           ((winning_thread == 2'd0) ? microcode_action_offset_t0 :
+    //                            (winning_thread == 2'd1) ? microcode_action_offset_t1 :
+    //                                                       microcode_action_offset_t2) : sel_act_off;
+    // wire [6:0] next_prm_off = flush_vec[winning_thread] ?
+    //                           ((winning_thread == 2'd0) ? microcode_param_offset_t0 :
+    //                            (winning_thread == 2'd1) ? microcode_param_offset_t1 :
+    //                                                       microcode_param_offset_t2) : sel_prm_off;
 
 
 //deterministic unpacking according to action opcode
@@ -199,8 +200,8 @@ module microcode(
 
     // Op1 always starts immediately after Op0 at nib[n0]
     wire [3:0] final_op1_p0 = nib[n0];
-    wire [3:0] final_op1_p1 = (n1 >= 2'd2) ? nib[n0 + 2'd1] : 4'd0;
-    wire [3:0] final_op1_p2 = (n1 == 2'd3) ? nib[n0 + 2'd2] : 4'd0;
+    wire [3:0] final_op1_p1 = (n1 >= 2'd2) ? nib[{1'b0, n0} + 3'd1] : 4'd0;
+    wire [3:0] final_op1_p2 = (n1 == 2'd3) ? nib[{1'b0, n0} + 3'd2] : 4'd0;
 
     // Select Op0 (even index) or Op1 (odd jump index) for immediate output in ST_COMMIT
     //fixes jump instruction problems
@@ -211,12 +212,28 @@ module microcode(
     wire [3:0] commit_p2    = is_odd_jump ? final_op1_p2 : final_op0_p2;
 
 
+    reg [2:0] pending_flush;
+    wire [7:0] raw_act_win = (winning_thread == 2'd0) ? microcode_action_offset_t0 :
+                         (winning_thread == 2'd1) ? microcode_action_offset_t1 : microcode_action_offset_t2;
+    wire [7:0] raw_prm_win = (winning_thread == 2'd0) ? microcode_param_offset_t0 :
+                            (winning_thread == 2'd1) ? microcode_param_offset_t1 : microcode_param_offset_t2;
+
+    wire [6:0] conv_act_win, conv_prm_win;
+    ternary_to_unsigned_binary_logic_convert_4t u_conv_act (.in_trits(raw_act_win), .out_bin(conv_act_win));
+    ternary_to_unsigned_binary_logic_convert_4t u_conv_prm (.in_trits(raw_prm_win), .out_bin(conv_prm_win));
+
+    
+    wire use_flush_win = flush_vec[winning_thread] || pending_flush[winning_thread];
+    wire [6:0] next_act_off = use_flush_win ? conv_act_win : sel_act_off;
+    wire [6:0] next_prm_off = use_flush_win ? conv_prm_win : sel_prm_off;
+
     integer i;
     
     
     //logik
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
+            pending_flush <= 3'b000;
             state                          <= ST_IDLE;
             active_t                       <= 2'd0;
             // active_base                    <= 10'd0;
@@ -263,6 +280,7 @@ module microcode(
                 data_ready_t0                  <= 1'b0;
                 request_data[0]                <= 1'b1;
                 importance[0]                  <= 4'd1;
+                pending_flush[0]               <= 1'b1;
             end else if (next_microop_t0) begin
                 data_ready_t0                  <= 1'b0;
                 request_data[0]                <= 1'b1;
@@ -275,6 +293,7 @@ module microcode(
                 data_ready_t1                  <= 1'b0;
                 request_data[1]                <= 1'b1;
                 importance[1]                  <= 4'd1;
+                pending_flush[1]               <= 1'b1;
             end else if (next_microop_t1) begin
                 data_ready_t1                  <= 1'b0;
                 request_data[1]                <= 1'b1;
@@ -287,6 +306,7 @@ module microcode(
                 data_ready_t2                  <= 1'b0;
                 request_data[2]                <= 1'b1;
                 importance[2]                  <= 4'd1;
+                pending_flush[2]               <= 1'b1;
             end else if (next_microop_t2) begin
                 data_ready_t2                  <= 1'b0;
                 request_data[2]                <= 1'b1;
@@ -308,9 +328,8 @@ module microcode(
                     wait_cnt <= 4'd0;
                     if (any_request) begin
                         active_t <= winning_thread;
-
                         // Fast-path: serve cached 2nd micro-op (Op1) in 1 cycle
-                        if (has_cached_odd[winning_thread] && !flush_vec[winning_thread]) begin
+                        if (has_cached_odd[winning_thread] && !use_flush_win) begin
                             has_cached_odd[winning_thread] <= 1'b0;
                             request_data[winning_thread]   <= 1'b0;
                             importance[winning_thread]     <= 4'd0;
@@ -347,11 +366,11 @@ module microcode(
                         end else begin
                             // Issue Action Byte Read from SRAM (Offset < 1024)
                             active_base <= calc_sector_base(sel_macro_op);
-
                             cur_act_off <= next_act_off;
                             cur_prm_off <= next_prm_off;
                             address     <= {2'b00, calc_sector_base(sel_macro_op)} + {6'b000000, next_act_off[6:1]};
                             state       <= ST_WAIT_ACT;
+                            pending_flush[winning_thread] <= 1'b0;
                         end
                     end
                 end
