@@ -23,12 +23,6 @@ module tt_um_triple_t_devEclipse2 (
 //3 modules gpio driver
 //alu
 //spi driver
-wire norm_oe [7:0];
-
-assign io_oe = ui_in[0] ? norm_oe : 8'd0;
-
-
-
 //can switch it's own command intake and data intake ports between spi sources with timeout functions
 /*
 buffers:
