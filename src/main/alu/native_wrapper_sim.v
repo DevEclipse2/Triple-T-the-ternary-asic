@@ -37,12 +37,11 @@ module native_wrapper_sim (
 
     //hello everybody my name is multiplier
         wire [15:0] bin_mult_out;
-
-    bt_mul_4t multiplier (
-        .a (trit4_in_a_0),
-        .b (trit4_in_b_0),
-        .p (bin_mult_out)
-    );
+        bt_mul_4t multiplier (
+            .a (trit4_in_a_0),
+            .b (trit4_in_b_0),
+            .p (bin_mult_out)
+        );
     //its so sad that tritwise died of ligma
     wire [1:0] bin_tw1_out, bin_tw2_out, bin_tw3_out;
         
