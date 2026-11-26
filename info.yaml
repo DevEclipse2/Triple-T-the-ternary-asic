@@ -19,7 +19,7 @@ project:
   source_files:
     - "main/tt_um_triple_t_devEclipse2.v"
     - "main/standalone/dummy_cpu.v"
-    - "main/standalone/octalram_ospi_ctrl.v"
+    - "main/standalone/octalram_opi_ctrl.v"
   analog_pins: 0
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
