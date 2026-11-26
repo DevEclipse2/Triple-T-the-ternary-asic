@@ -18,21 +18,8 @@ project:
   # Don't forget to also update `PROJECT_SOURCES` in test/Makefile.
   source_files:
     - "main/tt_um_triple_t_devEclipse2.v"
-    - "main/tt_um_core_commander.v"
-    - "main/ternary_to_unsigned_binary_logic_convert_4t.v"
-    - "main/logic_container.v"
-    - "main/thread/ternary_pc_4t.v"
-    - "main/thread/ternary_pc_12t.v"
-    - "main/thread/thread_command.v"
-    - "main/alu/native_wrapper_sim.v" # fix later ah
-    - "main/alu/simulated/bt_add_4t.v"
-    - "main/alu/simulated/bt_add3_4t.v"
-    - "main/alu/simulated/bt_fa_1t.v"
-    - "main/alu/simulated/bt_fa3_1t.v"
-    - "main/alu/simulated/bt_mul_4t.v"
-    - "main/alu/simulated/tritwise_1.v"
-    - "main/alu/simulated/tritwise_2.v"
-    - "main/alu/simulated/tritwise_3.v"
+    - "main/standalone/dummy_cpu.v"
+    - "main/standalone/octalram_ospi_ctrl.v"
   analog_pins: 0
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
