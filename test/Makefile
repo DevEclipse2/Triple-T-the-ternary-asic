@@ -8,6 +8,8 @@ TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
 PROJECT_SOURCES = \
 	main/tt_um_triple_t_devEclipse2.v \
+	main/standalone/dummy_cpu.v\
+	main/standalone/octalram_ospi_ctrl.v
 	
 ifneq ($(GATES),yes)
 
