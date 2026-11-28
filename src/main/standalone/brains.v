@@ -940,7 +940,6 @@ always @(posedge clk) begin
                         endcase
                     end
 
-                    // --- 3-Parameter Direct Ops ---
                     4'b0011: begin // 4t Add / Sub
                         alu_command   <= 3'd1;
                         alu_t4_a      <= shared_rd_4t_a;
@@ -992,8 +991,6 @@ always @(posedge clk) begin
                     4'b1011, 4'b1100: begin // 4t Imm Load / Slice Transfer
                         execute_stage <= 2'b01;
                     end
-
-                    // FREE TOP-LEVEL OPS: 0111, 1101, 1110, 1111
                     default: begin
                         exec_valid <= 1'b0;
                         cmd_done   <= 1'b1;
@@ -1001,9 +998,6 @@ always @(posedge clk) begin
                 endcase
             end
 
-        // -----------------------------------------------------------------
-        // Stage 1 & Stage 2: Multi-Cycle Commit / Writeback
-        // -----------------------------------------------------------------
         end else if (execute_stage != 2'b00) begin
             case (execute_stage)
                 2'b01: begin
@@ -1054,7 +1048,6 @@ always @(posedge clk) begin
                             execute_stage <= 2'b10;
                         end
 
-                    // Deferred 1-Param Mask Loads (after Stage 0 alias flush)
                     end else if (exec_cmd == 4'b0001) begin
                         if (write_allow) begin
                             case (exec_p0)
