@@ -41,6 +41,41 @@ no more extended register
 no next macro op param
 no pc special treatment
 no more overlord
+
+
+new instructions
+all of these use immediates
+
+0 params
+clear transfer buffer
+clear additional buffer
+state run
+state wait
+
+1 param
+use any 12 t reg as an address to hop to for the flash chip (balanced ternary to unsigned binary convert as well)
+
+2param
+
+set pin x use as y ()
+
+pin read
+pin set
+
+readto
+
+execcmd (switch between reading the command and direct spi flash)
+
+memrw
+
+spicmd
+
+transfer reads
+
+state push command
+
+
+
 */
 
 // 1/4 clock enable for 12.5 MHz core
